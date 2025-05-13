@@ -35,6 +35,8 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
+            implementation("cafe.adriel.voyager:voyager-navigator:1.1.0-beta02")
+            implementation("cafe.adriel.voyager:voyager-screenmodel:1.1.0-beta02")
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)

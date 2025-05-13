@@ -11,10 +11,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import cafe.adriel.voyager.navigator.Navigator as VoyagerNavigator
+import cafe.adriel.voyager.navigator.CurrentScreen
+import cafe.adriel.voyager.core.screen.Screen
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
 
 @Composable
 fun App() {
-    val navigator = rememberNavigator()
     val marathonTheme = MaterialTheme.colors.copy(
         primary = Color(0xFF404040),
         primaryVariant = Color(0xFF303030),
@@ -23,49 +27,29 @@ fun App() {
     )
     
     MaterialTheme(colors = marathonTheme) {
-        val currentScreen = navigator.currentScreen.value
+        // Инициализируем навигатор для обратной совместимости с существующим кодом
+        rememberNavigator()
         
-        Scaffold(
-            topBar = { 
-                MarathonTopBar(
-                    showBackButton = currentScreen != Screen.MAIN_SCREEN, 
-                    screenTitle = getScreenTitle(currentScreen),
-                    onBackClick = { navigator.goBack() }
-                )
-            },
-            bottomBar = { MarathonBottomBar() }
-        ) { paddingValues ->
-            Box(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
-                when (currentScreen) {
-                    Screen.MAIN_SCREEN -> MainScreen(navigator)
-                    Screen.RUNNER_CHECK -> RunnerCheckScreen(navigator)
-                    Screen.LOGIN_MENU -> LoginMenuScreen(navigator)
-                    Screen.RUNNER_REGISTRATION -> RunnerRegistrationScreen(navigator)
-                    Screen.EVENT_REGISTRATION -> EventRegistrationScreen(navigator)
-                    Screen.SPONSOR_RUNNER -> SponsorRunnerScreen(navigator)
-                    Screen.SPONSORSHIP_CONFIRMATION -> SponsorshipConfirmationScreen(navigator)
-                    Screen.REGISTRATION_CONFIRMATION -> RegistrationConfirmationScreen(navigator)
-                    Screen.RUNNER_MENU -> RunnerMenuScreen(navigator)
-                    Screen.MORE_INFO -> MoreInfoScreen(navigator)
-                    Screen.ABOUT_MARATHON -> AboutMarathonScreen(navigator)
+        VoyagerNavigator(screen = MainScreenVoyager) { navigator ->
+            // Настраиваем связь между классическим Navigator и Voyager
+            NavigationHandler.SetupNavigationHandler()
+            
+            Scaffold(
+                topBar = { 
+                    MarathonTopBar(
+                        showBackButton = navigator.lastItem != MainScreenVoyager, 
+                        screenTitle = NavigationHandler.getScreenTitle(navigator.lastItem),
+                        onBackClick = { navigator.pop() }
+                    )
+                },
+                bottomBar = { MarathonBottomBar() }
+            ) { paddingValues ->
+                Box(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
+                    CurrentScreen()
                 }
             }
         }
     }
-}
-
-fun getScreenTitle(screen: Screen) = when (screen) {
-    Screen.RUNNER_CHECK -> "Register as a runner"
-    Screen.LOGIN_MENU -> "Login"
-    Screen.RUNNER_REGISTRATION -> "Register as a runner"
-    Screen.EVENT_REGISTRATION -> "Register for an event"
-    Screen.SPONSOR_RUNNER -> "Sponsor a runner"
-    Screen.SPONSORSHIP_CONFIRMATION -> "Sponsorship confirmation"
-    Screen.REGISTRATION_CONFIRMATION -> "Registration confirmation"
-    Screen.RUNNER_MENU -> "Runner menu"
-    Screen.MORE_INFO -> "Find out more information"
-    Screen.ABOUT_MARATHON -> "About Marathon Skills 2016"
-    else -> "Marathon Skills 2016"
 }
 
 @Composable
